@@ -52,6 +52,7 @@ type TransferTxResult struct {
 // It creates a transfer record, add account entries and update account's balance within a single database transaction
 func (store *Store) TransferTx(ctx context.Context, arg CreateTransferParams) (TransferTxResult, error) {
 	var result TransferTxResult
+	negativeAmount := fmt.Sprint("-", arg.Amount)
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
@@ -68,7 +69,7 @@ func (store *Store) TransferTx(ctx context.Context, arg CreateTransferParams) (T
 
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
-			Amount:    fmt.Sprint("-", arg.Amount),
+			Amount:    negativeAmount,
 		})
 
 		if err != nil {
@@ -84,19 +85,11 @@ func (store *Store) TransferTx(ctx context.Context, arg CreateTransferParams) (T
 			return err
 		}
 
-		result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
-			ID:     arg.FromAccountID,
-			Amount: fmt.Sprint("-", arg.Amount),
-		})
-
-		if err != nil {
-			return err
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID, negativeAmount, arg.ToAccountID, arg.Amount)
+		} else {
+			result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, negativeAmount)
 		}
-
-		result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
-			ID:     arg.ToAccountID,
-			Amount: arg.Amount,
-		})
 
 		if err != nil {
 			return err
@@ -106,4 +99,27 @@ func (store *Store) TransferTx(ctx context.Context, arg CreateTransferParams) (T
 	})
 
 	return result, err
+}
+
+func addMoney(
+	ctx context.Context,
+	q *Queries,
+	accountID1 int64,
+	amount1 string,
+	accountID2 int64,
+	amount2 string,
+) (account1 Account, account2 Account, err error) {
+	account1, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID1,
+		Amount: amount1,
+	})
+	if err != nil {
+		return
+	}
+
+	account2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		ID:     accountID2,
+		Amount: amount2,
+	})
+	return
 }
