@@ -1,4 +1,4 @@
-test: 
-  go test -v -cover ./...
+test:
+	go test -v -cover ./...
   
 .PHONY: test
