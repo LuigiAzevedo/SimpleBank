@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.8.2
+	github.com/golang/mock v1.4.4
 	github.com/lib/pq v1.10.7
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.1

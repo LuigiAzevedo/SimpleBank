@@ -18,5 +18,7 @@ test:
 	go test -v -cover ./...
 server:
 	go run main.go
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/LuigiAzevedo/simplebank/db/sqlc Store
 
-.PHONY: startdocker startpostgres postgres createdb dropdb migrateup migratedown sqlc test server
+.PHONY: startdocker startpostgres postgres createdb dropdb migrateup migratedown sqlc test server mock
