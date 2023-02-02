@@ -76,11 +76,7 @@ func (server *Server) validCurrency(ctx *gin.Context, accountID int64, currency 
 }
 
 func (server *Server) validAmount(ctx *gin.Context, amount string) bool {
-	floatAmount, err := strconv.ParseFloat(amount, 64)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return false
-	}
+	floatAmount, _ := strconv.ParseFloat(amount, 64)
 
 	if floatAmount < 1 {
 		err := fmt.Errorf("invalid transfer amount [%.2f], must be more than 1", floatAmount)
