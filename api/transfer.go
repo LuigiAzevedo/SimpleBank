@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	db "github.com/LuigiAzevedo/simplebank/db/sqlc"
+	"github.com/LuigiAzevedo/simplebank/token"
 )
 
 type transferRequest struct {
@@ -26,15 +28,20 @@ func (server *Server) CreateTransfer(ctx *gin.Context) {
 		return
 	}
 
-	if !server.validCurrency(ctx, req.FromAccountID, req.Currency) {
+	fromAccount, valid := server.validAccount(ctx, req.FromAccountID, req.Currency, req.Amount)
+	if !valid {
 		return
 	}
 
-	if !server.validCurrency(ctx, req.ToAccountID, req.Currency) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if fromAccount.Owner != authPayload.Username {
+		err := errors.New("from account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 
-	if !server.validAmount(ctx, req.Amount) {
+	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency, req.Amount)
+	if !valid {
 		return
 	}
 
@@ -54,35 +61,31 @@ func (server *Server) CreateTransfer(ctx *gin.Context) {
 
 }
 
-func (server *Server) validCurrency(ctx *gin.Context, accountID int64, currency string) bool {
+func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string, amount string) (db.Account, bool) {
+	// verify valid amount
+	floatAmount, _ := strconv.ParseFloat(amount, 64)
+	if floatAmount < 1 {
+		err := fmt.Errorf("invalid transfer amount [%.2f], must be more than 1", floatAmount)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return db.Account{}, false
+	}
+
 	account, err := server.store.GetAccount(ctx, accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return false
+			return db.Account{}, false
 		}
-
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return false
+		return db.Account{}, false
 	}
 
+	// verify currency type
 	if account.Currency != currency {
 		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", account.ID, account.Currency, currency)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return false
+		return db.Account{}, false
 	}
 
-	return true
-}
-
-func (server *Server) validAmount(ctx *gin.Context, amount string) bool {
-	floatAmount, _ := strconv.ParseFloat(amount, 64)
-
-	if floatAmount < 1 {
-		err := fmt.Errorf("invalid transfer amount [%.2f], must be more than 1", floatAmount)
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return false
-	}
-
-	return true
+	return account, true
 }
