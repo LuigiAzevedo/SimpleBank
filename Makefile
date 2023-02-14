@@ -3,7 +3,7 @@ startdocker:
 startpostgres:
 	docker start postgres
 postgres:
-	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=luigi -e POSTGRES_PASSWORD=for7drokidr4 -d postgres
+	docker run --name postgres --network bank-network -p 5432:5432 -e POSTGRES_USER=luigi -e POSTGRES_PASSWORD=for7drokidr4 -d postgres
 createdb:
 	docker exec -it postgres createdb --username=luigi --owner=luigi simple_bank
 dropdb:
