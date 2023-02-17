@@ -39,7 +39,8 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 }
 
 const getTransfer = `-- name: GetTransfer :one
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
+SELECT id, from_account_id, to_account_id, amount, created_at 
+FROM transfers
 WHERE id = $1 
 LIMIT 1
 `
@@ -58,10 +59,9 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 }
 
 const listTransfers = `-- name: ListTransfers :many
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
-WHERE 
-    from_account_id = $1 OR
-    to_account_id = $2
+SELECT id, from_account_id, to_account_id, amount, created_at 
+FROM transfers
+WHERE from_account_id = $1 OR to_account_id = $2
 ORDER BY id
 LIMIT $3
 OFFSET $4
