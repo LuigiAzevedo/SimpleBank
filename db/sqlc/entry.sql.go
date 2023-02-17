@@ -15,8 +15,7 @@ INSERT INTO entries (
   amount
 ) VALUES (
   $1, $2
-)
-RETURNING id, account_id, amount, created_at
+) RETURNING id, account_id, amount, created_at
 `
 
 type CreateEntryParams struct {
