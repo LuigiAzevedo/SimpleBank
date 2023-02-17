@@ -1,3 +1,5 @@
+DB_URL=postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable
+
 startdocker:
 	service docker start
 startpostgres:
@@ -9,15 +11,19 @@ createdb:
 dropdb:
 	docker exec -it postgres dropdb --username=luigi simple_bank
 migrateup:
-	migrate -path db/migration -database "postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable" -verbose up
+	migrate -path db/migration -database "$(DB_URL)" -verbose up
 migrateup1:
-	migrate -path db/migration -database "postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable" -verbose up 1
+	migrate -path db/migration -database "$(DB_URL)" -verbose up 1
 migratedown:
-	migrate -path db/migration -database "postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable" -verbose down
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
 migratedown1:
-	migrate -path db/migration -database "postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
+	migrate -path db/migration -database "$(DB_URL)" -verbose down 1
+db_docs:
+	dbdocs build doc/db.dbml  
+db_schema:
+	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 sqlc: 
-	docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
+	docker run --rm -v$ (shell pwd):/src -w /src kjconroy/sqlc generate
 test:
 	go test -v -cover ./...
 server:
@@ -25,4 +31,4 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/LuigiAzevedo/simplebank/db/sqlc Store
 
-.PHONY: startdocker startpostgres postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 sqlc test server mock
+.PHONY: startdocker startpostgres postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 db_docs db_schema sqlc test server mock
