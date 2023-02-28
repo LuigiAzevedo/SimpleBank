@@ -18,6 +18,10 @@ migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 migratedown1:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down 1
+composeup:
+	docker compose up
+composedown:
+	docker compose down
 db_docs:
 	dbdocs build doc/db.dbml  
 db_schema:
@@ -39,4 +43,4 @@ proto:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-.PHONY: startdocker startpostgres postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 db_docs db_schema sqlc test server mock proto evans
+.PHONY: startdocker startpostgres postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 composeup composedown db_docs db_schema sqlc test server mock proto evans
