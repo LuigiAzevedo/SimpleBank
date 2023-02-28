@@ -1,4 +1,5 @@
 DB_URL=postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 startdocker:
 	service docker start
@@ -27,7 +28,7 @@ db_docs:
 db_schema:
 	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 sqlc: 
-	docker run --rm -v$ (shell pwd):/src -w /src kjconroy/sqlc generate
+	docker run --rm -v $(ROOT_DIR):/src -w /src kjconroy/sqlc generate
 test:
 	go test -v -cover ./...
 server:
