@@ -65,7 +65,7 @@ func TestValidateFullName(t *testing.T) {
 	}
 
 	tests := []test{
-		{name: "OK", fullName: util.RandomString(20), want: nil},
+		{name: "OK", fullName: "Full Name With Spaces", want: nil},
 		{name: "Bigger than max", fullName: util.RandomString(201), want: fmt.Errorf("must contain from 3-200 characters")},
 		{name: "Smaller than min / Empty", fullName: util.RandomString(0), want: fmt.Errorf("must contain from 3-200 characters")},
 		{name: "Special Characters", fullName: "!@#$", want: fmt.Errorf("must contain only letters and spaces")},
