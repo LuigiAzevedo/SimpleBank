@@ -1,12 +1,6 @@
 DB_URL=postgresql://luigi:for7drokidr4@localhost:5432/simple_bank?sslmode=disable
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-startpostgres:
-	docker start postgres
-
-startredis:
-	docker start redis
-
 postgres:
 	docker run --name postgres --network bank-network -p 5432:5432 -e POSTGRES_USER=luigi -e POSTGRES_PASSWORD=for7drokidr4 -d postgres
 
@@ -65,4 +59,4 @@ evans:
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7.0.9-alpine
 
-.PHONY: startpostgres startredis postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 composeup composedown db_docs db_schema sqlc test server mock proto evans redis
+.PHONY: postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 composeup composedown db_docs db_schema sqlc test server mock proto evans redis
